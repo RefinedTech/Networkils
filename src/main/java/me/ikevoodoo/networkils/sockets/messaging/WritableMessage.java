@@ -86,6 +86,7 @@ public class WritableMessage {
 
     public WritableMessage writeString(Charset charset, String s) {
         byte[] bytes = s.getBytes(charset);
+        expandIfNeeded(Integer.BYTES + bytes.length * Byte.BYTES);
         writeInt(bytes.length);
         writeBytes(bytes);
         return this;
@@ -129,6 +130,11 @@ public class WritableMessage {
         message.clear();
         writeInt(magicNumber);
         return this;
+    }
+
+    public ReadableMessage toReadable() {
+        message.flip();
+        return new ReadableMessage(message);
     }
 
     private void expandIfNeeded(int bytes) {

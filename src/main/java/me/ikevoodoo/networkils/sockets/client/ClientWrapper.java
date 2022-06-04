@@ -1,5 +1,6 @@
 package me.ikevoodoo.networkils.sockets.client;
 
+import me.ikevoodoo.networkils.sockets.messaging.ReadableMessage;
 import me.ikevoodoo.networkils.sockets.messaging.WritableMessage;
 import me.ikevoodoo.networkils.sockets.threading.ReadThread;
 
@@ -58,6 +59,16 @@ public class ClientWrapper extends Thread {
             this.sendMessage(message);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        return this;
+    }
+
+    public ClientWrapper call(ReadableMessage message) throws IOException {
+        int magicNumber = message.getMagicNumber();
+        if (messageListeners.containsKey(magicNumber)) {
+            for (ClientMessageListener listener : messageListeners.get(magicNumber)) {
+                listener.onMessage(this, message);
+            }
         }
         return this;
     }
