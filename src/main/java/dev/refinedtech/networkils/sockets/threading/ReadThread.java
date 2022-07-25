@@ -1,6 +1,6 @@
 package dev.refinedtech.networkils.sockets.threading;
 
-import dev.refinedtech.networkils.exceptions.SizeTooLargeException;
+import dev.refinedtech.networkils.exceptions.UnexpectedSizeException;
 import dev.refinedtech.networkils.sockets.messaging.ReadableMessage;
 
 import java.io.IOException;
@@ -46,11 +46,19 @@ public class ReadThread extends Thread {
 
                 int len = ByteBuffer.wrap(size).getInt();
                 if(len > 1_073_741_824) {
-                    throw new SizeTooLargeException(
+                    throw new UnexpectedSizeException(
                             "Message cannot be larger than 1GB, either split the message or an attacker is trying to send a large message",
                             len
                     );
                 }
+
+                if (len < 0) {
+                    throw new UnexpectedSizeException(
+                            "Message cannot be smaller than 0 bytes, either the wrong size was sent or an attacker is trying to send a wrong message",
+                            len
+                    );
+                }
+
                 byte[] data = new byte[len];
                 if(this.inputStream.read(data) == -1) {
                     // Client has sent all the data and closed the connection
@@ -72,7 +80,7 @@ public class ReadThread extends Thread {
                     interrupt();
                     break;
                 }
-            } catch (IOException | SizeTooLargeException e) {
+            } catch (IOException | UnexpectedSizeException e) {
                 e.printStackTrace();
             }
         }
